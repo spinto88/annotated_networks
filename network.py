@@ -22,7 +22,9 @@ class Network(ctypes.Structure):
 	def readgml(self, file_name):
 		pass
 
-	def community_
+	# To put here belief propagation by steps
+	def community_detection(self):
+		pass
 
 
 
