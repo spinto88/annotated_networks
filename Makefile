@@ -1,4 +1,4 @@
-CFLAGS = -O3
+CFLAGS = -O -g
 CC = gcc
 LIBS = -lm -lgsl -lgslcblas
 TARGET = main
