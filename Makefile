@@ -1,15 +1,26 @@
-CFLAGS = -O
+CFLAGS = -O3
 CC = gcc
 LIBS = -lm -lgsl -lgslcblas
+TARGET = main
 
-metadata:metadata.o readgml.o
-	$(CC) $(CFLAGS) metadata.o readgml.o -o metadata $(LIBS)
+SRC = $(wildcard *.c)
+OBJ = $(patsubst %.c, %.o, $(SRC))
 
-metadata.o:metadata.c readgml.h network.h Makefile
-	$(CC) $(CFLAGS) -c metadata.c 
+.PHONY: all object clean
 
-readgml.o: readgml.c network.h
-	$(CC) $(CFLAGS) -c readgml.c
+default: all
+
+object: $(OBJECTS)
+
+serial: $(TARGET)
+
+all: object serial
+
+$(TARGET): $(OBJ)
+	$(CC) $^ -o $(TARGET) $(LDFLAGS) $(LIBS)
+
+%.o: %.c %.h
+	$(CC) $(CFLAGS) -c $< -o $@ 
 
 clean:
-	rm -rfv readgml.o metadata.o metadata
+	rm -rfv *.o
