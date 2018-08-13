@@ -6,7 +6,7 @@ int main(int argc, char *argv[])
   int u,v,i,r,s;
   int step;
   int bpsteps;
-  double norm,deltac,maxdelta;
+  double norm, deltac, maxdelta;
   double c[K][K];
   double oldc[K][K];
   double ru[K];
