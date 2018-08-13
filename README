@@ -1,0 +1,51 @@
+Code accompanying the paper "Structure and inference in annotated networks" by M. E. J. Newman and Aaron Clauset, Nature Communications (2016).
+
+Files:
+
+metadata.c: Program to perform community detection with metadata
+Makefile: A Unix-style makefile
+readgml.c,readgml.h,network.h: General code for handling networks
+sbm-meta.gml: An example input network with n=200 nodes and synethic metadata
+
+
+Also required:
+
+The program requires the GNU Scientific Library (GSL) and its header files to compile.  GSL is available as a free download from http://www.gnu.org/software/gsl (among other places).
+
+
+Compilation:
+
+To compile under Unix/Linux/Mac style systems with gcc, GSL, and make installed, simply type "make".  On Windows follow the procedure for whatever compiler you use.
+
+There are a number of constants defined near the start of the code whose values can be varied.  Chief among these is K, which controls the number of communities the network is to be divided into.  Currently K is set to 2.  The other constants control target accuracy and rate of convergence of the EM and belief propagation iterations.  The current values are reasonable general-purpose choices.  You probably won't need to alter these unless you have problems with convergence.
+
+
+Test run:
+
+To test the program on the given example file, type
+
+  metadata < smb-meta.gml
+
+You should get output that looks like this:
+
+0 Meta0 0.999985 0.000015
+1 Meta0 0.989349 0.010651
+2 Meta0 1.000000 0.000000
+3 Meta1 0.633329 0.366671
+4 Meta0 0.999997 0.000003
+5 Meta0 0.999999 0.000001
+6 Meta0 0.990398 0.009602
+7 Meta0 0.999974 0.000026
+8 Meta0 0.999975 0.000025
+9 Meta0 0.999660 0.000340
+10 Meta1 0.778350 0.221650
+...
+
+The columns are:
+
+[1] node number
+[2] metadata string read from the file for that node
+[3] posterior probability of assignment to group 1
+[4] posterior probability of assignment to group 2
+
+You should find that the first 100 nodes are (almost all) assigned to one group and the second 100 to the other group.  Which hundred gets assigned to which group, however, will vary from run to run depending on the initial conditions, which are generated anew at random on each run.
