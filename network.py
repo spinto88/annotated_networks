@@ -72,9 +72,14 @@ def getmetadata():
      # To translate graph_tool, igraph, or networkx graphs to C structure defined by Mark Newman
     return nmlabels, x, nx
 
-def core_function(graph, k_comm = 2, steps = 100, random_seed = 123467):
+def core_function(graph, k_comm = 2, steps = 10, random_seed = 123467):
 
     import os
+    import subprocess
+
+    make_process = subprocess.Popen("make", stderr=subprocess.STDOUT)
+    make_process.wait()
+
     libc = ctypes.CDLL(os.getcwd() + '/libc.so')
 
     libc.bp.argtypes = [Network,\
@@ -146,30 +151,35 @@ def core_function(graph, k_comm = 2, steps = 100, random_seed = 123467):
                 omega[r][s] = omega[s][r]
 
     step = 0
+    lparams = []
     while(step < steps):
 
         libc.bp(graph, k_comm, x, gmma, omega, eta, q)
 
-        libc.params(graph, k_comm, x, nx, nmlabels, nrx, gmma,\
-                omega, eta, q)
+        lparams.append(libc.params(graph, k_comm, x, nx, nmlabels, nrx, gmma,\
+                omega, eta, q))
 
         step += 1
 
     communities = [[q[i][k] for k in range(k_comm)] \
                     for i in range(graph.nvertices)]
 
-    mix_matrix = np.array([[gmma[l][k] for l in range(nmlabels)] \
+    mix_matrix = np.array([[gmma[k][l] for l in range(nmlabels)] \
                   for k in range(k_comm)])
 
-    return communities, mix_matrix
+    return communities, mix_matrix, lparams
 
 def main():
 
     graph = pynet2newman()
-    comm, mixm = core_function(graph, k_comm = 4)
+    comm, mixm, l = core_function(graph, k_comm = 2, steps = 100)
 
-    print comm[:10]
     print mixm
+
+    import matplotlib.pyplot as plt
+
+    plt.plot(l)
+    plt.show()
 
 if __name__ == "__main__":
     main()

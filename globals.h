@@ -12,18 +12,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
 #include <math.h>
-#include <time.h>
-#include <gsl/gsl_rng.h>
 
 /* Constants */
 
 #define BP_ACC 1e-4    // Required accuracy for BP to terminate
 #define EM_ACC 1e-4    // Required accuracy for EM to terminate
 
-#define NOCONVERGE     // Set to abort if the solution doesn't converge
 #define BP_MAXSTEP 20  // Maximum number of BP steps before aborting
 #define EM_MAXSTEP 100 // Maximum number of EM steps before aborting
 
