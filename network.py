@@ -72,9 +72,7 @@ def getmetadata():
      # To translate graph_tool, igraph, or networkx graphs to C structure defined by Mark Newman
     return nmlabels, x, nx
 
-def core_function(graph, k_comm = 2, random_seed = 123467):
-
-#    k_comm = ctypes.c_int(k_comm)
+def core_function(graph, k_comm = 2, steps = 100, random_seed = 123467):
 
     import os
     libc = ctypes.CDLL(os.getcwd() + '/libc.so')
@@ -102,24 +100,20 @@ def core_function(graph, k_comm = 2, random_seed = 123467):
                            
     np.random.seed(random_seed)
 
-    # Twice the number of edges
-    twom = np.sum([graph.vertex[u].degree for u in range(graph.nvertices)])
-
     # Inicializar metadata 
     nmlabels, x, nx = getmetadata()
-
-#    nmlabels = ctypes.c_int(nmlabels)
     x = (graph.nvertices * ctypes.c_int)(*x)
     nx = (graph.nvertices * ctypes.c_int)(*nx)
-    
-    q = (graph.nvertices * ctypes.POINTER(ctypes.c_double))()
 
+    # q has information about community assigment for each node u
+    # It is initializated at random    
+    q = (graph.nvertices * ctypes.POINTER(ctypes.c_double))()
     for u in range(graph.nvertices):
         aux = np.random.dirichlet(np.ones(k_comm))
         q[u] = (k_comm * ctypes.c_double)(*aux)
   
+
     eta = (graph.nvertices * ctypes.POINTER(ctypes.POINTER(ctypes.c_double)))()
-    
     for u in range(graph.nvertices):
         eta[u] = (graph.vertex[u].degree * ctypes.POINTER(ctypes.c_double))()
         for i in range(graph.vertex[u].degree):
@@ -134,28 +128,25 @@ def core_function(graph, k_comm = 2, random_seed = 123467):
 
     gmma = (k_comm * ctypes.POINTER(ctypes.c_double))()
     for r in range(k_comm):
-        aux = np.random.dirichlet(np.ones(k_comm))
+        aux = np.random.dirichlet(np.ones(nmlabels))
         gmma[r] = (nmlabels * ctypes.c_double)(*aux)
         
-    c = np.zeros([k_comm, k_comm], dtype = ctypes.c_double)
+    # Twice the number of edges
+    twom = np.sum([graph.vertex[u].degree for u in range(graph.nvertices)])
 
     omega = (k_comm * ctypes.POINTER(ctypes.c_double))()
-    for i in range(k_comm):
-        omega[i] = (k_comm * ctypes.c_double)()
-
     for r in range(k_comm):
+        omega[r] = (k_comm * ctypes.c_double)()
         for s in range(k_comm):
             if r == s:
-                 c[r][s] = 1 + np.random.random()
+                omega[r][s] = np.random.random()/twom;
             elif r < s:
-                c[r][s] = np.random.random()
+                omega[r][s] = np.random.random()/twom;
             else:
-                c[r][s] = c[s][r];
-            omega[r][s] = c[r][s]/twom;
+                omega[r][s] = omega[s][r]
 
     step = 0
-    print(q[100][0], q[100][1])
-    while(step < 10000):
+    while(step < steps):
 
         libc.bp(graph, k_comm, x, gmma, omega, eta, q)
 
@@ -164,16 +155,21 @@ def core_function(graph, k_comm = 2, random_seed = 123467):
 
         step += 1
 
-    print(q[100][0], q[100][1])
+    communities = [[q[i][k] for k in range(k_comm)] \
+                    for i in range(graph.nvertices)]
 
-    for i in range(2):
-        for j in range(2):
-            print(gmma[i][j])
+    mix_matrix = np.array([[gmma[l][k] for l in range(nmlabels)] \
+                  for k in range(k_comm)])
+
+    return communities, mix_matrix
 
 def main():
 
     graph = pynet2newman()
-    core_function(graph)
+    comm, mixm = core_function(graph, k_comm = 4)
+
+    print comm[:10]
+    print mixm
 
 if __name__ == "__main__":
     main()
