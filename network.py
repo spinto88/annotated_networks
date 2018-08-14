@@ -154,8 +154,8 @@ def core_function(graph, k_comm = 2, random_seed = 123467):
             omega[r][s] = c[r][s]/twom;
 
     step = 0
-    print(q[0][0], q[0][1])
-    while(step < 1000):
+    print(q[100][0], q[100][1])
+    while(step < 10000):
 
         libc.bp(graph, k_comm, x, gmma, omega, eta, q)
 
@@ -164,7 +164,7 @@ def core_function(graph, k_comm = 2, random_seed = 123467):
 
         step += 1
 
-    print(q[0][0], q[0][1])
+    print(q[100][0], q[100][1])
 
     for i in range(2):
         for j in range(2):
