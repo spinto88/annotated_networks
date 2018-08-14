@@ -3,6 +3,6 @@
 
 #include "globals.h"
 
-int bp(void);
+int bp(NETWORK, int, int *, double **, double **, double ***, double **);
 
 #endif

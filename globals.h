@@ -6,9 +6,7 @@
  * Written by Mark Newman  28 NOV 2014
  */
 
-/* Program control */
-
-#define VERBOSE        // Set to print progress updates to stderr
+/* Modified to do the connection with Python by Seba Pinto in Aug 2018 */
 
 /* Inclusions */
 
@@ -19,12 +17,8 @@
 #include <math.h>
 #include <time.h>
 #include <gsl/gsl_rng.h>
-#include "readgml.h"
-#include "network.h"
 
 /* Constants */
-
-#define K 3            // Number of groups
 
 #define BP_ACC 1e-4    // Required accuracy for BP to terminate
 #define EM_ACC 1e-4    // Required accuracy for EM to terminate
@@ -35,22 +29,35 @@
 
 #define SMALL 1.0e-100
 
-/* Globals */
 
-NETWORK G;             // Struct storing the network
-int twom;              // Twice the number of edges
+/* Network definition */
 
-int *x;                // Metadata
-int *nx;               // Number of nodes with each distinct metadata value
-double **nrx;          // Expected number in each group with value
-char **mlabel;         // Metadata strings
-int nmlabels;          // Number of distinct metadata strings
+// Header file for VERTEX, EDGE, and NETWORK data structures 
+//
+// Mark Newman  11 AUG 06
 
-double **gmma;         // Prior parameters (spelled "gmma" because "gamma"
-                       //   is a reserved word in C math.h)
-double omega[K][K];    // Mixing parameters
+#ifndef _NETWORK_H
+#define _NETWORK_H
 
-double ***eta;         // Messages
-double **q;            // One-point marginals
+typedef struct {
+  int target;        // Index in the vertex[] array of neighboring vertex.
+                     // (Note that this is not necessarily equal to the GML
+                     // ID of the neighbor if IDs are nonconsecutive or do
+                     // not start at zero.)
+  double weight;     // Weight of edge.  1 if no weight is specified.
+} EDGE;
 
-gsl_rng *rng;          // Random number generator
+typedef struct {
+  int id;            // GML ID number of vertex
+  int degree;        // Degree of vertex (out-degree for directed nets)
+  char *label;       // GML label of vertex.  NULL if no label specified
+  EDGE *edge;        // Array of EDGE structs, one for each neighbor
+} VERTEX;
+
+typedef struct {
+  int nvertices;     // Number of vertices in network
+  int directed;      // 1 = directed network, 0 = undirected
+  VERTEX *vertex;    // Array of VERTEX structs, one for each vertex
+} NETWORK;
+
+#endif
