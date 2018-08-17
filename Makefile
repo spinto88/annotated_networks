@@ -1,4 +1,4 @@
-CFLAGS = -O -g -fPIC
+CFLAGS = -O -g -fPIC -Wall
 CC = gcc
 LIBS = -lm
 TARGET = libc.so
@@ -23,4 +23,4 @@ $(TARGET): $(OBJ)
 	$(CC) $(CFLAGS) -c $< -o $@ 
 
 clean:
-	rm -rfv *.o *.so
+	rm -rfv *.o 

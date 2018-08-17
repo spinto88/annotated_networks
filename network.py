@@ -28,51 +28,54 @@ class Network(ctypes.Structure):
     def __init__(self):
         pass
 
-def pynet2newman():
+def graphtool2newman(gt_graph, label):
 
-    from graph_tool import Graph
-
-    g = Graph()
-    g.load(file_name = 'sbm-meta.gml')
-
+    # Create Newman graph to be used in C programs
     graph = Network()
 
-    graph.nvertices = g.num_vertices()
-    graph.directed = 0
+    # Number of vertices
+    graph.nvertices = gt_graph.num_vertices()
+
+    # Is directed?
+    graph.directed = int(gt_graph.is_directed())
+  
+    # Graph vertices array
     graph.vertex = (graph.nvertices * Vertex)()
 
     for i in range(graph.nvertices):
-        graph.vertex[i].id = i
-        graph.vertex[i].degree = g.vertex(i).out_degree()
-#        graph.vertex[i].label = 'Meta'
 
-        graph.vertex[i].edge = (g.vertex(i).out_degree() * Edge)()
-        vs = g.vertex(i)
+        # Vertex id
+        graph.vertex[i].id = i 
+
+        # Vertex degree
+        graph.vertex[i].degree = gt_graph.vertex(i).out_degree()
+
+        # Vertex edge array
+        graph.vertex[i].edge = (gt_graph.vertex(i).out_degree() * Edge)()
+
+        # Neighbors assigment 
+        vs = gt_graph.vertex(i)
         neigh = [int(k) for k in vs.out_neighbors()]
-        for j in range(g.vertex(i).out_degree()):
+        for j in range(gt_graph.vertex(i).out_degree()):
             graph.vertex[i].edge[j].target = neigh[j]
 
-    return graph
+    # Label information
+    labels = list(set(gt_graph.vertex_properties[label]))
 
-def getmetadata():
-
-    from graph_tool import Graph
-
-    g = Graph()
-    g.load(file_name = 'sbm-meta.gml')
-
-    labels = list(set(g.vertex_properties['label']))
-
+    # Number of distinct labels 
     nmlabels = len(labels)
 
-    x = [labels.index(g.vertex_properties['label'][i]) for i in range(g.num_vertices())]
+    # Integer value for each categorical label
+    x = [labels.index(gt_graph.vertex_properties[label][i]) for i in range(gt_graph.num_vertices())]
 
-    nx = [list(g.vertex_properties['label']).count(l) for l in labels]
+    # Number of vertices woth each label
+    nx = [list(gt_graph.vertex_properties[label]).count(l) for l in labels]
 
-     # To translate graph_tool, igraph, or networkx graphs to C structure defined by Mark Newman
-    return nmlabels, x, nx
+    # Return the graph with information, number of distinct labels, 
+    # integer value per vertex, and number of vertices with each label
+    return graph, nmlabels, x, nx
 
-def core_function(graph, k_comm = 2, steps = 10, random_seed = 123467):
+def core_function(graph, k_comm, nmlabels, x, nx, steps, random_seed):
 
     import os
     import subprocess
@@ -105,8 +108,7 @@ def core_function(graph, k_comm = 2, steps = 10, random_seed = 123467):
                            
     np.random.seed(random_seed)
 
-    # Inicializar metadata 
-    nmlabels, x, nx = getmetadata()
+    # Initialization of metadata 
     x = (graph.nvertices * ctypes.c_int)(*x)
     nx = (graph.nvertices * ctypes.c_int)(*nx)
 
@@ -169,19 +171,11 @@ def core_function(graph, k_comm = 2, steps = 10, random_seed = 123467):
 
     return communities, mix_matrix, lparams
 
-def main():
 
-    graph = pynet2newman()
-    comm, mixm, l = core_function(graph, k_comm = 2, steps = 100)
+def annotated_community_detection(gt_graph, k_comm = 2, label = 'label', steps = 100, random_seed = 123457):
 
-    print mixm
+    graph, nmlabels, x, nx = graphtool2newman(gt_graph, label)
 
-    import matplotlib.pyplot as plt
+    comm, mixm, l = core_function(graph, k_comm, nmlabels, x, nx, steps, random_seed)
 
-    plt.plot(l)
-    plt.show()
-
-if __name__ == "__main__":
-    main()
-
-
+    return comm, mixm, l

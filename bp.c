@@ -8,7 +8,7 @@ int bp(NETWORK G, int k_comm, int *x, double **gmma, double **omega, double ***e
   int r,s;
   int steps;
   double deltaeta, maxdelta;
-  double logeta, neweta, sum, norm, largest;
+  double logeta, neweta, sum, norm, largest = 0.00;
   double d[k_comm];
   double logpre[k_comm];
   double logqun[k_comm];
