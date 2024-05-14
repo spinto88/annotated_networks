@@ -376,7 +376,7 @@ double params()
 }
 
 
-main(int argc, char *argv[])
+void main(int argc, char *argv[])
 {
   int u,v,i,r,s;
   int step;
